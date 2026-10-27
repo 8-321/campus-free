@@ -6,7 +6,7 @@
 
   var LS_KEY = 'baina.campusfree.v1';
   var NEAR_M = 90;          // 极近：距离强调色阈值
-  var URGENT_MIN = 30;      // 30 分钟内过期 → 砖红
+  var URGENT_MIN = 30;      // 30 分钟内过期改砖红
   var HOT_MIN = 45;         // 手慢无：时间阈值
   var HERO_R = 500;         // 首屏标题的半径
   var BANDS = [
