@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F4EB">
+<title>白拿 · 校园免费捡漏</title>
+<meta name="description" content="把校园里正在被免费送掉的东西按距离排成一页。学生打开第一眼就知道 500 米内有什么可以白拿。">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main class="wrap">
+
+  <!-- ===== 左栏：说明（桌面端） ===== -->
+  <aside class="aside">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="19" height="19" fill="none" stroke="currentColor"/>
+        <rect x="5" y="9" width="10" height="6" fill="currentColor"/>
+        <path d="M10 2v6M7.5 5.5L10 3l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      </svg>
+      <span class="brand-name">白拿</span>
+      <span class="brand-sub">校园免费捡漏</span>
+    </div>
+
+    <h2 class="aside-h1">校园里正在被送掉的东西，<br>按距离排成一页。</h2>
+    <p class="aside-p">不刷群、不翻三个二手平台。打开就是「我 500 米内现在有什么可以白拿」，距离是主视觉，时间只在快过期时才说话。</p>
+
+    <dl class="aside-stats">
+      <div><dt>首页条目</dt><dd>14</dd></div>
+      <div><dt>可领份数</dt><dd>39</dd></div>
+      <div><dt>最近一件</dt><dd>60<span>m</span></dd></div>
+    </dl>
+
+    <ul class="aside-list">
+      <li><b>距离优先</b>卡片右侧 24px 直接写米数，时间降为 9.5px 小字，只有 30 分钟内才变砖红。</li>
+      <li><b>四位数闭环</b>领取只在本地生成 4 位码，双方当面报数，不交换手机号。</li>
+      <li><b>零依赖</b>纯 HTML/CSS/JS，四个文件，localStorage 存状态，丢到任何静态托管就能跑。</li>
+    </ul>
+
+    <div class="qr-block">
+      <img class="qr" src="assets/qr.png" alt="课堂扫码打开 白拿 手机版" width="132" height="132">
+      <div class="qr-txt">
+        <b>课堂扫码</b>
+        <span>手机打开即用<br>390 × 844 验收基准</span>
+      </div>
+    </div>
+
+    <p class="aside-foot">演示图 · 上线前请替换为自有版权照片。地点与人物均为虚构。</p>
+  </aside>
+
+  <!-- ===== 右栏：手机框 ===== -->
+  <div class="phone-col">
+    <div class="device" id="device">
+
+      <!-- 可滚动内容 -->
+      <div class="screen" id="screen">
+
+        <!-- 附近 -->
+        <section class="view is-active" id="view-near" data-view="near">
+          <div class="hero">
+            <p class="eyebrow"><span class="dot"></span><span id="heroCampus">东校区</span> · 现在 · 由近到远</p>
+            <h1 id="heroTitle">9 样东西，<br>在你 500 米内</h1>
+            <p class="hero-note" id="heroNote">最近 60 米 · 25 分钟后有东西过期</p>
+          </div>
+
+          <div class="chips" id="chips" role="group" aria-label="分类筛选"></div>
+
+          <div class="strip-head">
+            <h3>手慢无</h3>
+            <span id="hotHint">45 分钟内过期</span>
+          </div>
+          <div class="strip" id="hotStrip"></div>
+
+          <div class="list-head">
+            <span>按距离</span>
+            <span id="listStat">14 条 · 39 份</span>
+          </div>
+          <div id="bands"></div>
+
+          <p class="list-foot" id="listFoot">以上共 14 条 · 39 份可领 · 全部免费</p>
+        </section>
+
+        <!-- 手慢无 -->
+        <section class="view" id="view-hot" data-view="hot">
+          <div class="view-head">
+            <p class="eyebrow"><span class="dot"></span>正在消失</p>
+            <h1 class="view-h1">手慢无</h1>
+            <p class="hero-note">45 分钟内过期，或 90 米内能立刻走到。</p>
+          </div>
+          <div id="hotList"></div>
+          <p class="list-foot">共 <span id="hotCount">4</span> 件 · 点开看地点与领取码</p>
+        </section>
+
+        <!-- 发布 -->
+        <section class="view" id="view-publish" data-view="publish">
+          <div class="view-head">
+            <p class="eyebrow"><span class="dot"></span>三十秒挂上去</p>
+            <h1 class="view-h1">我要送</h1>
+            <p class="hero-note">写清地点和还剩多久，别人才能真的来拿。</p>
+          </div>
+          <form class="form" id="pubForm" novalidate>
+            <label class="field">
+              <span>送什么</span>
+              <input id="fTitle" type="text" maxlength="24" placeholder="例：半箱矿泉水（未开封）" autocomplete="off">
+            </label>
+
+            <div class="field">
+              <span>分类</span>
+              <div class="pick-row" id="fCat"></div>
+            </div>
+
+            <div class="field-2">
+              <label class="field">
+                <span>离你多远（米）</span>
+                <input id="fMeters" type="number" inputmode="numeric" min="10" max="1500" value="120">
+              </label>
+              <label class="field">
+                <span>多久内有效</span>
+                <select id="fExpires">
+                  <option value="20">20 分钟</option>
+                  <option value="35">35 分钟</option>
+                  <option value="60" selected>1 小时</option>
+                  <option value="180">3 小时</option>
+                  <option value="480">今天内</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>放在哪（不要写宿舍号）</span>
+              <input id="fSpot" type="text" maxlength="28" placeholder="例：三食堂后门靠墙长椅" autocomplete="off">
+            </label>
+
+            <label class="field">
+              <span>一句话说明</span>
+              <textarea id="fNote" rows="2" maxlength="80" placeholder="还剩几份、有没有拆封、要不要自带袋子"></textarea>
+            </label>
+
+            <div class="field">
+              <span>配一张图（演示素材）</span>
+              <div class="pick-photos" id="fPhotos"></div>
+            </div>
+
+            <button class="btn-ink btn-full" type="submit">发布 · 立刻排到最前</button>
+            <p class="form-note">不收集姓名 / 学号 / 手机号。领取码只在双方手机本地生成。</p>
+          </form>
+        </section>
+
+        <!-- 我的 -->
+        <section class="view" id="view-me" data-view="me">
+          <div class="view-head">
+            <p class="eyebrow"><span class="dot"></span>你的账</p>
+            <h1 class="view-h1">我的</h1>
+          </div>
+
+          <div class="bill">
+            <p class="eyebrow">白拿省下</p>
+            <div class="bill-num"><span class="cur">¥</span><span id="mMoney">0</span></div>
+            <p class="bill-sub">共 <b id="mCount">0</b> 次领取 · 平均每次 ¥<b id="mAvg">0</b></p>
+          </div>
+
+          <div class="list-head"><span>领取记录</span><span id="mRecCount">0 条</span></div>
+          <div id="mRecs"></div>
+          <p class="empty" id="mEmpty">还没有领取记录。去「附近」点开一件，领取后会拿到 4 位码。</p>
+
+          <div class="pro" id="proCard">
+            <p class="pro-eyebrow">Pro</p>
+            <h3>30 分钟内新货，先看一分钟</h3>
+            <ul class="pro-list">
+              <li>极近 / 快过期的新条目推送</li>
+              <li>跨校区一起看，按真实步行时间排</li>
+              <li>无广告，不做推荐位</li>
+            </ul>
+            <div class="pro-foot">
+              <span class="pro-price">¥6<span>/月</span></span>
+              <button class="btn-line btn-line-light" id="proBtn" type="button">了解 Pro</button>
+            </div>
+          </div>
+
+          <p class="list-foot">本地演示版 · 数据保存在这台设备的浏览器里</p>
+          <p class="reset-wrap"><button class="reset-btn" id="resetBtn" type="button">清空本机演示数据</button></p>
+        </section>
+
+      </div><!-- /screen -->
+
+      <!-- 顶栏 -->
+      <header class="topbar glass">
+        <button class="campus" id="campusBtn" type="button">
+          <span id="campusName">东校区</span>
+          <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        </button>
+        <button class="top-pub" id="topPub" type="button" aria-label="发布一条">
+          <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>送东西</span>
+        </button>
+      </header>
+
+      <!-- 底栏 -->
+      <nav class="tabbar glass" id="tabbar" aria-label="主导航">
+        <button class="tab is-active" data-tab="near" type="button">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="1.6" fill="currentColor"/></svg>
+          <span>附近</span>
+        </button>
+        <button class="tab" data-tab="hot" type="button">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 5.6V10l3 1.8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+          <span>手慢无</span>
+        </button>
+        <button class="tab" data-tab="publish" type="button">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="1.4"/></svg>
+          <span>发布</span>
+        </button>
+        <button class="tab" data-tab="me" type="button">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.8 15.2c1-2.2 2.4-3.2 4.2-3.2s3.2 1 4.2 3.2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+          <span>我的</span>
+        </button>
+      </nav>
+
+      <!-- 详情 -->
+      <div class="scrim" id="scrim"></div>
+      <section class="sheet glass" id="sheet" aria-hidden="true" aria-label="详情">
+        <div class="sheet-scroll">
+          <div class="sheet-photo-wrap">
+            <img class="sheet-photo" id="dPhoto" alt="">
+            <button class="sheet-close" id="dClose" type="button" aria-label="关闭详情">
+              <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+          <div class="sheet-body">
+            <p class="eyebrow" id="dCat">食物 · 剩 2 份</p>
+            <h2 class="sheet-title" id="dTitle">—</h2>
+            <div class="sheet-dist">
+              <span class="d-num" id="dDist">120<span>m</span></span>
+              <span class="d-time" id="dTime">25 分钟后过期</span>
+            </div>
+            <dl class="meta">
+              <div><dt>地点</dt><dd id="dSpot">—</dd></div>
+              <div><dt>估值</dt><dd id="dValue">—</dd></div>
+              <div><dt>发布</dt><dd id="dBy">—</dd></div>
+            </dl>
+            <p class="sheet-note" id="dNote">—</p>
+
+            <div class="steps">
+              <p class="eyebrow">怎么拿</p>
+              <ol class="steps-list">
+                <li><b>01</b><span>点下面「领取」，拿到一个 4 位数字码</span></li>
+                <li><b>02</b><span>按地点走过去，当面把 4 位报给对方</span></li>
+                <li><b>03</b><span>拿走。双方都不留手机号、不加好友</span></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <div class="sheet-foot">
+          <button class="btn-ink btn-full" id="dClaim" type="button">领取 · 生成 4 位码</button>
+        </div>
+
+        <div class="codeview" id="codeView" aria-hidden="true">
+          <p class="eyebrow">领取码 · 当面报这 4 位</p>
+          <div class="code" id="dCode">0000</div>
+          <p class="code-note">不交换手机号。码已存进「我的 · 领取记录」，30 分钟内有效。</p>
+          <button class="btn-line" id="dDone" type="button">完成</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <p class="frame-note">390 × 844 验收基准 · 桌面端为「左说明 + 右手机框」</p>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

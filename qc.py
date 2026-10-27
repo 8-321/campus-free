@@ -4,7 +4,8 @@ import websocket
 
 PORT = 9334
 PROF = r"C:\Users\34137\AppData\Local\hermes\cache\scratch\edge-qc"
-OUT = r"D:\Hermes\work\campus-free\shots"
+BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8123"
+OUT = r"D:\Hermes\work\campus-free\shots" + ("" if len(sys.argv) < 2 else "-live")
 os.makedirs(OUT, exist_ok=True)
 
 def start_edge():
@@ -92,11 +93,11 @@ def main():
     """)
 
     c.send("Emulation.setDeviceMetricsOverride", width=390, height=844, deviceScaleFactor=2, mobile=True)
-    c.send("Page.navigate", url="http://127.0.0.1:8123/?v=%d" % int(time.time()))
+    c.send("Page.navigate", url=BASE + "/?v=%d" % int(time.time()))
     wait_ready(c)
     time.sleep(0.8)
     c.ev("localStorage.clear()")            # 每次从干净状态开始
-    c.send("Page.navigate", url="http://127.0.0.1:8123/?v=%d" % int(time.time()))
+    c.send("Page.navigate", url=BASE + "/?v=%d" % int(time.time()))
     wait_ready(c)
     time.sleep(1.2)
 
@@ -128,6 +129,10 @@ def main():
     R["sheet_open"] = c.ev("document.querySelector('#sheet').classList.contains('on')")
     R["detail_title"] = c.ev("document.querySelector('#dTitle').textContent.trim()")
     R["detail_dist"] = c.ev("document.querySelector('#dDist').textContent.trim()")
+    for _ in range(20):
+        if c.ev("(()=>{const i=document.querySelector('#dPhoto');return i.complete&&i.naturalWidth>0})()"):
+            break
+        time.sleep(0.25)
     R["detail_photo_ok"] = c.ev("(()=>{const i=document.querySelector('#dPhoto');return i.complete&&i.naturalWidth>0&&i.src.includes('-wide.jpg')})()")
     R["detail_time_color"] = c.ev("getComputedStyle(document.querySelector('#dTime')).color")
     R["detail_dist_color"] = c.ev("getComputedStyle(document.querySelector('#dDist')).color")
@@ -208,6 +213,10 @@ def main():
             R["log_errors"].append(str(e["params"]["exceptionDetails"].get("text"))[:160])
         if e.get("method") == "Network.loadingFailed":
             R["log_errors"].append("net: " + str(e["params"].get("errorText"))[:80])
+        if e.get("method") == "Network.responseReceived":
+            resp = e["params"]["response"]
+            if resp.get("status", 200) >= 400:
+                R["log_errors"].append("http %d: %s" % (resp["status"], resp.get("url", "")[:120]))
 
     # 桌面 1280 双栏
     c.send("Emulation.setDeviceMetricsOverride", width=1280, height=900, deviceScaleFactor=1, mobile=False)
