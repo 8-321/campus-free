@@ -109,8 +109,12 @@ def main():
     R["listStat"] = c.ev("document.querySelector('#listStat').textContent")
     R["hotCards"] = c.ev("document.querySelectorAll('#hotStrip .hot-card').length")
     R["chips"] = c.ev("document.querySelectorAll('#chips .chip').length")
-    # 图片是否都真加载
-    R["bad_imgs"] = c.ev("Array.from(document.images).filter(i=>!i.complete||i.naturalWidth===0).map(i=>i.src)")
+    # 图片是否都真加载（naturalWidth 在解码完成后才有值，轮询等最多 4s）
+    for _ in range(20):
+        if c.ev("(()=>{const im=[...document.images];return im.length>0&&im.every(i=>i.complete&&i.naturalWidth>0)})()"):
+            break
+        time.sleep(0.25)
+    R["bad_imgs"] = c.ev("Array.from(document.images).filter(i=>i.getAttribute('src')&&(!i.complete||i.naturalWidth===0)).map(i=>i.src)")
     R["img_count"] = c.ev("document.images.length")
     c.shot("01-mobile-home.png")
 
@@ -223,7 +227,7 @@ def main():
     time.sleep(0.8)
     c.shot("07-desktop.png")
     R["desktop"] = c.ev("JSON.stringify({aside: !!document.querySelector('.aside') && getComputedStyle(document.querySelector('.aside')).display, deviceW: document.querySelector('#device').getBoundingClientRect().width, qr: document.querySelector('.qr').naturalWidth})")
-    c.shot("08-desktop-full.png", clip=[0, 0, 1280, 1400])
+    c.shot("08-desktop-full.png", clip=[0, 0, 1280, 900])
 
     print(json.dumps(R, ensure_ascii=False, indent=1))
 

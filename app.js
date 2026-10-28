@@ -76,6 +76,15 @@
   function allItems() {
     return state.posts.concat(SEED);
   }
+  /* 已被你领走的份数不再算进库存：卡片上的「剩 N 份」与首页总量必须一致 */
+  function claimedQty(id) {
+    var n = 0;
+    for (var i = 0; i < state.claims.length; i++) if (state.claims[i].id === id) n += 1;
+    return n;
+  }
+  function leftQty(item) {
+    return Math.max(0, (item.qty || 1) - claimedQty(item.id));
+  }
   function filtered() {
     var items = allItems();
     if (state.cat !== 'all') {
@@ -84,7 +93,7 @@
     return items;
   }
   function stockOf(items) {
-    return items.reduce(function (n, i) { return n + (i.qty || 1); }, 0);
+    return items.reduce(function (n, i) { return n + leftQty(i); }, 0);
   }
   function byMeters(a, b) { return a.meters - b.meters; }
 
@@ -124,9 +133,9 @@
     var hotDist = isNear(item) ? ' hot' : '';
     var hotTime = isUrgent(item) ? ' urgent' : '';
     var claimed = claimedOf(item.id);
-    var sub = spotText(item) + ' · 剩 ' + (item.qty || 1) + ' 份' + (item.value ? ' · 估值 ¥' + item.value : '');
+    var sub = spotText(item) + ' · 剩 ' + leftQty(item) + ' 份' + (item.value ? ' · 估值 ¥' + item.value : '');
     return '<button class="row' + (item.fresh ? ' is-new' : '') + '" type="button" data-id="' + esc(item.id) + '">' +
-      '<img class="thumb" src="assets/photos/' + esc(item.photo) + '-card.jpg" alt="' + esc(item.title) + ' 的实拍图" loading="lazy" width="96" height="72">' +
+      '<img class="thumb" src="assets/photos/' + esc(item.photo) + '-card.jpg" alt="' + esc(item.title) + ' 的实拍图" width="96" height="72">' +
       '<span class="row-main">' +
         '<span class="row-title">' + (item.fresh ? '<span class="badge-new">新</span>' : '') + esc(item.title) + '</span>' +
         '<span class="row-sub">' + esc(sub) + '</span>' +
@@ -142,7 +151,7 @@
 
   function hotCardHTML(item) {
     return '<button class="hot-card" type="button" data-id="' + esc(item.id) + '">' +
-      '<img src="assets/photos/' + esc(item.photo) + '-card.jpg" alt="' + esc(item.title) + ' 的实拍图" loading="lazy" width="164" height="123">' +
+      '<img src="assets/photos/' + esc(item.photo) + '-card.jpg" alt="' + esc(item.title) + ' 的实拍图" width="164" height="123">' +
       '<span class="hot-body" style="display:block">' +
         '<span class="hot-title">' + esc(item.title) + '</span>' +
         '<span class="hot-meta">' +
@@ -264,7 +273,7 @@
 
     $('dPhoto').src = 'assets/photos/' + item.photo + '-wide.jpg';
     $('dPhoto').alt = item.title + ' 的 16:9 实拍图';
-    $('dCat').textContent = catLabel(item.cat) + ' · 剩 ' + (item.qty || 1) + ' 份';
+    $('dCat').textContent = catLabel(item.cat) + ' · 剩 ' + leftQty(item) + ' 份';
     $('dTitle').textContent = item.title;
     $('dDist').innerHTML = Math.round(item.meters) + '<span>m</span>';
     $('dDist').className = 'd-num' + (isNear(item) ? ' hot' : '');
@@ -336,7 +345,7 @@
       'cloth-shirts', 'spot-lecture', 'food-salad-bowl', 'daily-desk-mug'];
     $('fPhotos').innerHTML = picks.map(function (p) {
       return '<button type="button" data-pphoto="' + p + '" aria-pressed="' + (pubPhoto === p) + '" aria-label="选择示意图 ' + p + '">' +
-        '<img src="assets/photos/' + p + '-card.jpg" alt="" loading="lazy" width="76" height="57"></button>';
+        '<img src="assets/photos/' + p + '-card.jpg" alt="" width="76" height="57"></button>';
     }).join('');
   }
 

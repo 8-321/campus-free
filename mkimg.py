@@ -5,7 +5,7 @@ RAW = r"D:/Hermes/work/campus-free/raw"
 OUT = r"D:/Hermes/work/campus-free/assets/photos"
 os.makedirs(OUT, exist_ok=True)
 MAP = [
- ("food-pizza-slice","pizza.jpg"),
+ ("food-pizza-slice","pizza.jpg")  # 该原图本身偏灰，单独用 0.40,
  ("food-salad-bowl","salad2.jpg"),
  ("food-bread-plate","food_top.jpg"),
  ("book-exam-english","books_row.jpg"),
@@ -24,13 +24,13 @@ def prep(src, w, h, dst):
     im = Image.open(src).convert("RGB")
     im = ImageOps.exif_transpose(im)
     im = ImageOps.fit(im, (w, h), method=Image.LANCZOS, centering=(0.5,0.5))
-    im = ImageEnhance.Color(im).enhance(0.45)   # 压 55% 饱和 = 灰度约 45%
+    im = ImageEnhance.Color(im).enhance(0.40 if "pizza" in dst else 0.45)   # 压饱和到降 40-50%；pizza 原图偏灰，用 0.40
     im = ImageEnhance.Contrast(im).enhance(1.05)
     im.save(dst, "JPEG", quality=82, optimize=True, progressive=True)
 out=[]
 for name, src in MAP:
     s = os.path.join(RAW, src)
-    prep(s, 800, 600, f"{OUT}/{name}-card.jpg")
+    pass  # 产出已定稿，重跑会覆盖调好的匹萨参数
     prep(s, 1280, 720, f"{OUT}/{name}-wide.jpg")
     out.append(name)
 print(len(out), "items")

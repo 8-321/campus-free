@@ -47,7 +47,7 @@ ul{list-style:none}
 .wrap{
   max-width:1120px;margin:0 auto;padding:56px 40px 72px;
   display:grid;grid-template-columns:minmax(0,1fr) 390px;
-  gap:72px;align-items:start;
+  gap:72px;align-items:center;min-height:100vh;
 }
 
 /* --------- 左栏 --------- */
