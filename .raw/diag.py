@@ -78,21 +78,23 @@ def wait_ready(c, t=12):
 
 
 
+
+
+
 def main():
     start_edge()
     tgt = json.loads(urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{PORT}/json/new?about:blank", method="PUT")).read())
     c = CDP(tgt["webSocketDebuggerUrl"]); c.send("Page.enable"); c.send("Runtime.enable")
-    c.send("Network.enable"); c.send("Network.setCacheDisabled", cacheDisabled=True)
+    c.send("Network.enable")   # 不再 setCacheDisabled
     c.send("Emulation.setDeviceMetricsOverride", width=390, height=844, deviceScaleFactor=2, mobile=True)
     c.send("Page.navigate", url=BASE + "/?d=%d" % int(time.time()))
     wait_ready(c)
-    out = []
-    for step in range(2):
-        time.sleep(0.5)
-        info = c.ev("JSON.stringify([...document.images].filter(i=>i.getAttribute('src')&&(!i.complete||i.naturalWidth===0)).map(i=>[i.src.split('/').pop(),i.className,i.complete,i.naturalWidth,i.getBoundingClientRect().top|0,i.getAttribute('width'),i.getAttribute('height')]))")
-        tot = c.ev("document.images.length")
-        out.append((step*0.5+0.5, tot, info))
-    open(r"D:\Hermes\work\campus-free\.raw\diagrun.txt","w",encoding="utf-8").write(repr(out))
-    print(out)
+    for step in range(6):
+        time.sleep(1.0)
+        r = c.ev("""(async()=>{const im=[...document.images];
+          const bad=[];for(const i of im){if(!i.complete||!i.naturalWidth){bad.push(i.src.split('/').pop())}}
+          let dec=0;for(const i of im){try{await i.decode();dec++}catch(e){}}
+          return JSON.stringify({t:Math.round(performance.now()),n:im.length,notLoaded:bad.length,decoded:dec})})()""", await_promise=True)
+        print(r)
 
 main()

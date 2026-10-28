@@ -82,7 +82,6 @@ def main():
         urllib.request.Request(f"http://127.0.0.1:{PORT}/json/new?about:blank", method="PUT")).read())
     c = CDP(tgt["webSocketDebuggerUrl"])
     c.send("Page.enable"); c.send("Runtime.enable"); c.send("Log.enable"); c.send("Network.enable")
-    c.send("Network.setCacheDisabled", cacheDisabled=True)
     c.send("Page.addScriptToEvaluateOnNewDocument", source="""
       window.__errs = [];
       window.addEventListener('error', e => window.__errs.push('error: ' + (e.message||'') + ' @' + (e.filename||'')),
@@ -110,10 +109,8 @@ def main():
     R["hotCards"] = c.ev("document.querySelectorAll('#hotStrip .hot-card').length")
     R["chips"] = c.ev("document.querySelectorAll('#chips .chip').length")
     # 图片是否都真加载（naturalWidth 在解码完成后才有值，轮询等最多 4s）
-    for _ in range(20):
-        if c.ev("(()=>{const im=[...document.images];return im.length>0&&im.every(i=>i.complete&&i.naturalWidth>0)})()"):
-            break
-        time.sleep(0.25)
+    c.ev("(async()=>{for(const i of document.images){try{await i.decode()}catch(e){}}return 1})()", await_promise=True)
+    time.sleep(0.4)
     R["bad_imgs"] = c.ev("Array.from(document.images).filter(i=>i.getAttribute('src')&&(!i.complete||i.naturalWidth===0)).map(i=>i.src)")
     R["img_count"] = c.ev("document.images.length")
     c.shot("01-mobile-home.png")
@@ -202,6 +199,8 @@ def main():
     time.sleep(1.0)
     c.ev("(()=>{const s=document.querySelector('#screen');s.scrollTop=0;})()")
     time.sleep(0.6)
+    c.ev("(async()=>{for(const i of document.images){try{await i.decode()}catch(e){}}return 1})()", await_promise=True)
+    time.sleep(0.3)
     R["bad_imgs_after_scroll"] = c.ev("Array.from(document.images).filter(i=>i.src&&(!i.complete||i.naturalWidth===0)).map(i=>i.src)")
 
     #  控制台错误
